@@ -156,6 +156,50 @@ Content-Type: application/x-www-form-urlencoded
 lat1=50.1&lon1=14.4&lat2=48.9&lon2=2.4
 ```
 
+## Usage
+
+### Wind Triangle
+1. Enter true airspeed in knots
+2. Enter desired true course in degrees (0-359°)
+3. Enter wind direction (where wind is coming from) in degrees
+4. Enter wind speed in knots
+5. Click "Calculate Wind Triangle" to get:
+   - Drift angle (degrees)
+   - Magnetic heading to fly (degrees) 
+   - Ground speed (knots)
+
+### Great Circle Navigation
+1. Enter departure point latitude and longitude in decimal degrees
+2. Enter destination point latitude and longitude in decimal degrees
+3. Click "Calculate Great Circle" to get:
+   - Shortest distance in nautical miles
+   - Initial bearing in degrees
+
+### Rhumb Line Navigation
+1. Enter departure point latitude and longitude in decimal degrees
+2. Enter destination point latitude and longitude in decimal degrees  
+3. Click "Calculate Rhumb Line" to get:
+   - Distance along constant bearing route in nautical miles
+   - Constant bearing to maintain in degrees
+
+## Technical Details
+
+### Wind Triangle Calculations
+Uses standard aviation formulas:
+- Drift angle = arcsin((wind_speed × sin(wind_angle)) / true_airspeed)
+- Ground speed = true_airspeed × cos(drift_angle) - wind_speed × cos(wind_angle)
+- Magnetic heading = true_course + drift_angle
+
+### Great Circle Calculations
+Uses the Haversine formula:
+- Distance = 2R × arcsin(√(sin²(Δlat/2) + cos(lat1) × cos(lat2) × sin²(Δlon/2)))
+- Initial bearing = atan2(sin(Δlon) × cos(lat2), cos(lat1) × sin(lat2) - sin(lat1) × cos(lat2) × cos(Δlon))
+
+### Rhumb Line Calculations
+Uses loxodromic navigation formulas accounting for Mercator projection.
+
+## Project Structure
+
 ```
 aviation-calculator/
 ├── aviationcalc/                # Django project config (settings, urls, wsgi, asgi)
@@ -218,71 +262,6 @@ uv run python manage.py runserver
 ```
 
 5. Open your browser to `http://127.0.0.1:8000`
-
-## Usage
-
-### Wind Triangle
-1. Enter true airspeed in knots
-2. Enter desired true course in degrees (0-359°)
-3. Enter wind direction (where wind is coming from) in degrees
-4. Enter wind speed in knots
-5. Click "Calculate Wind Triangle" to get:
-   - Drift angle (degrees)
-   - Magnetic heading to fly (degrees) 
-   - Ground speed (knots)
-
-### Great Circle Navigation
-1. Enter departure point latitude and longitude in decimal degrees
-2. Enter destination point latitude and longitude in decimal degrees
-3. Click "Calculate Great Circle" to get:
-   - Shortest distance in nautical miles
-   - Initial bearing in degrees
-
-### Rhumb Line Navigation
-1. Enter departure point latitude and longitude in decimal degrees
-2. Enter destination point latitude and longitude in decimal degrees  
-3. Click "Calculate Rhumb Line" to get:
-   - Distance along constant bearing route in nautical miles
-   - Constant bearing to maintain in degrees
-
-## Technical Details
-
-### Wind Triangle Calculations
-Uses standard aviation formulas:
-- Drift angle = arcsin((wind_speed × sin(wind_angle)) / true_airspeed)
-- Ground speed = true_airspeed × cos(drift_angle) - wind_speed × cos(wind_angle)
-- Magnetic heading = true_course + drift_angle
-
-### Great Circle Calculations
-Uses the Haversine formula:
-- Distance = 2R × arcsin(√(sin²(Δlat/2) + cos(lat1) × cos(lat2) × sin²(Δlon/2)))
-- Initial bearing = atan2(sin(Δlon) × cos(lat2), cos(lat1) × sin(lat2) - sin(lat1) × cos(lat2) × cos(Δlon))
-
-### Rhumb Line Calculations
-Uses loxodromic navigation formulas accounting for Mercator projection.
-
-## Project Structure
-
-```
-aviation-calculator/
-├── aviationcalc/           # Django project settings
-├── calculator/             # Main calculator app
-│   ├── models.py          # CalculationHistory model
-│   ├── views.py           # Calculator logic and views
-│   ├── urls.py            # URL routing
-│   ├── admin.py           # Admin interface
-│   └── templates/         # HTML templates
-│       └── calculator/
-│           ├── base.html
-│           ├── home.html
-│           ├── wind_triangle.html
-│           ├── great_circle.html
-│           ├── rhumb_line.html
-│           └── history.html
-├── manage.py              # Django management script
-├── pyproject.toml         # uv/Python project configuration
-└── README.md             # This file
-```
 
 ## Dependencies
 
