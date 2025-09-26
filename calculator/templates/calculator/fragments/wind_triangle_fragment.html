@@ -1,0 +1,24 @@
+{% comment %} HTMX fragment for wind triangle results {% endcomment %}
+<div id="results" class="result-section">
+    <h5>Results</h5>
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-4">
+            <strong>Drift Angle:</strong>
+            <div id="driftAngle" class="fs-4 text-primary">{{ drift_angle }}</div>
+            <small class="text-muted">degrees</small>
+        </div>
+        <div class="col-md-4">
+            <strong>Magnetic Heading:</strong>
+            <div id="magneticHeading" class="fs-4 text-primary">{{ magnetic_heading }}</div>
+            <small class="text-muted">degrees</small>
+        </div>
+        <div class="col-md-4">
+            <strong>Ground Speed:</strong>
+            <div id="groundSpeed" class="fs-4 text-primary">{{ ground_speed }}</div>
+            <small class="text-muted">knots</small>
+        </div>
+    </div>
+</div>

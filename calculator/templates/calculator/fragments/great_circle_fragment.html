@@ -1,0 +1,19 @@
+{% comment %} HTMX fragment for great circle results {% endcomment %}
+<div id="results" class="result-section">
+    <h5>Results</h5>
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-6">
+            <strong>Distance:</strong>
+            <div id="distance" class="fs-4 text-success">{{ distance }}</div>
+            <small class="text-muted">nautical miles</small>
+        </div>
+        <div class="col-md-6">
+            <strong>Initial Bearing:</strong>
+            <div id="initialBearing" class="fs-4 text-success">{{ initial_bearing }}</div>
+            <small class="text-muted">degrees</small>
+        </div>
+    </div>
+</div>
