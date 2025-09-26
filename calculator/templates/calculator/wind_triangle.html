@@ -1,0 +1,144 @@
+{% extends 'calculator/base.html' %}
+
+{% block title %}Wind Triangle Calculator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card calculator-card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">🌬️ Wind Triangle Calculator</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Calculate wind correction angle, magnetic heading, and ground speed.</p>
+                
+                <form id="windTriangleForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="trueAirspeed" class="form-label">True Airspeed (knots)</label>
+                            <input type="number" class="form-control" id="trueAirspeed" step="0.1" min="0" required>
+                            <small class="text-muted">Aircraft's speed through the air</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="trueCourse" class="form-label">True Course (degrees)</label>
+                            <input type="number" class="form-control" id="trueCourse" step="0.1" min="0" max="359.9" required>
+                            <small class="text-muted">Desired track over ground (0-359°)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="windDirection" class="form-label">Wind Direction (degrees)</label>
+                            <input type="number" class="form-control" id="windDirection" step="0.1" min="0" max="359.9" required>
+                            <small class="text-muted">Direction wind is coming from (0-359°)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="windSpeed" class="form-label">Wind Speed (knots)</label>
+                            <input type="number" class="form-control" id="windSpeed" step="0.1" min="0" required>
+                            <small class="text-muted">Speed of the wind</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Calculate Wind Triangle</button>
+                    </div>
+                </form>
+
+                <div id="results" class="result-section" style="display: none;">
+                    <h5>Results</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>Drift Angle:</strong>
+                            <div id="driftAngle" class="fs-4 text-primary">-</div>
+                            <small class="text-muted">degrees</small>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Magnetic Heading:</strong>
+                            <div id="magneticHeading" class="fs-4 text-primary">-</div>
+                            <small class="text-muted">degrees</small>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Ground Speed:</strong>
+                            <div id="groundSpeed" class="fs-4 text-primary">-</div>
+                            <small class="text-muted">knots</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="error" class="alert alert-danger" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6>Wind Triangle Explanation</h6>
+                <p class="small text-muted">
+                    The wind triangle is used to solve navigation problems involving wind. It shows the relationship between:
+                </p>
+                <ul class="small text-muted">
+                    <li><strong>True Airspeed:</strong> Aircraft's speed through the air mass</li>
+                    <li><strong>Wind Vector:</strong> Speed and direction of the wind</li>
+                    <li><strong>Ground Track:</strong> Actual path over the ground</li>
+                    <li><strong>Drift Angle:</strong> Angle between heading and track</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('windTriangleForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        true_airspeed: parseFloat(document.getElementById('trueAirspeed').value),
+        true_course: parseFloat(document.getElementById('trueCourse').value),
+        wind_direction: parseFloat(document.getElementById('windDirection').value),
+        wind_speed: parseFloat(document.getElementById('windSpeed').value)
+    };
+    
+    try {
+        const response = await fetch('{% url "calculator:wind_triangle" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('driftAngle').textContent = data.results.drift_angle + '°';
+            document.getElementById('magneticHeading').textContent = data.results.magnetic_heading + '°';
+            document.getElementById('groundSpeed').textContent = data.results.ground_speed;
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+        } else {
+            document.getElementById('error').textContent = 'Error: ' + data.error;
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+    } catch (error) {
+        document.getElementById('error').textContent = 'Network error: ' + error.message;
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+    }
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

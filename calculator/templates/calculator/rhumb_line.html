@@ -1,0 +1,145 @@
+{% extends 'calculator/base.html' %}
+
+{% block title %}Rhumb Line Calculator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card calculator-card">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">🧭 Rhumb Line Calculator</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Calculate constant bearing navigation distance and course between two points.</p>
+                
+                <form id="rhumbLineForm">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <h6 class="text-warning">Departure Point</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lat1" class="form-label">Latitude (degrees)</label>
+                            <input type="number" class="form-control" id="lat1" step="0.000001" min="-90" max="90" required>
+                            <small class="text-muted">North positive, South negative (-90 to 90°)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lon1" class="form-label">Longitude (degrees)</label>
+                            <input type="number" class="form-control" id="lon1" step="0.000001" min="-180" max="180" required>
+                            <small class="text-muted">East positive, West negative (-180 to 180°)</small>
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <h6 class="text-warning">Destination Point</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lat2" class="form-label">Latitude (degrees)</label>
+                            <input type="number" class="form-control" id="lat2" step="0.000001" min="-90" max="90" required>
+                            <small class="text-muted">North positive, South negative (-90 to 90°)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lon2" class="form-label">Longitude (degrees)</label>
+                            <input type="number" class="form-control" id="lon2" step="0.000001" min="-180" max="180" required>
+                            <small class="text-muted">East positive, West negative (-180 to 180°)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-warning">Calculate Rhumb Line</button>
+                    </div>
+                </form>
+
+                <div id="results" class="result-section" style="display: none;">
+                    <h5>Results</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Distance:</strong>
+                            <div id="distance" class="fs-4 text-warning">-</div>
+                            <small class="text-muted">nautical miles</small>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Constant Bearing:</strong>
+                            <div id="bearing" class="fs-4 text-warning">-</div>
+                            <small class="text-muted">degrees</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="error" class="alert alert-danger" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h6>Rhumb Line Navigation</h6>
+                <p class="small text-muted">
+                    A rhumb line (or loxodrome) is a path of constant bearing that crosses all meridians at the same angle. While longer than a great circle route, it's easier to navigate as the compass heading remains constant.
+                </p>
+                <ul class="small text-muted">
+                    <li><strong>Distance:</strong> Total distance along the rhumb line</li>
+                    <li><strong>Constant Bearing:</strong> Single compass heading for the entire route</li>
+                    <li><strong>Advantage:</strong> Simple navigation with constant heading</li>
+                    <li><strong>Disadvantage:</strong> Longer distance than great circle (except on equator or meridians)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('rhumbLineForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        lat1: parseFloat(document.getElementById('lat1').value),
+        lon1: parseFloat(document.getElementById('lon1').value),
+        lat2: parseFloat(document.getElementById('lat2').value),
+        lon2: parseFloat(document.getElementById('lon2').value)
+    };
+    
+    try {
+        const response = await fetch('{% url "calculator:rhumb_line" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('distance').textContent = data.results.distance + ' nm';
+            document.getElementById('bearing').textContent = data.results.bearing + '°';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+        } else {
+            document.getElementById('error').textContent = 'Error: ' + data.error;
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+    } catch (error) {
+        document.getElementById('error').textContent = 'Network error: ' + error.message;
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+    }
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
