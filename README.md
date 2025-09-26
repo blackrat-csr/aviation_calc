@@ -33,7 +33,168 @@ Please create simple django html/templates project for web application allowing 
 - Organized by calculation type with color coding
 
 ## Installation
+## Project Structure
 
+## API Reference
+
+All endpoints accept POST requests for calculation (with form or JSON data) and GET for HTML UI.
+
+| Endpoint              | Method | Description                                      | POST Params (form/JSON)                | Response (HTMX/JSON) |
+|----------------------|--------|--------------------------------------------------|----------------------------------------|----------------------|
+| `/`                  | GET    | Home page, navigation                            | –                                      | HTML                 |
+| `/wind-triangle/`    | GET    | Wind triangle calculator form                    | –                                      | HTML                 |
+| `/wind-triangle/`    | POST   | Calculate wind triangle                          | true_airspeed, true_course, wind_direction, wind_speed | HTML fragment (HTMX) or JSON |
+| `/great-circle/`     | GET    | Great circle calculator form                     | –                                      | HTML                 |
+| `/great-circle/`     | POST   | Calculate great circle distance & bearing        | lat1, lon1, lat2, lon2                 | HTML fragment (HTMX) or JSON |
+| `/rhumb-line/`       | GET    | Rhumb line calculator form                       | –                                      | HTML                 |
+| `/rhumb-line/`       | POST   | Calculate rhumb line distance & bearing          | lat1, lon1, lat2, lon2                 | HTML fragment (HTMX) or JSON |
+| `/history/`          | GET    | Calculation history                              | –                                      | HTML                 |
+
+### Example POST (JSON)
+
+
+```
+POST /great-circle/
+Content-Type: application/json
+{
+   "lat1": 50.1,
+   "lon1": 14.4,
+   "lat2": 48.9,
+   "lon2": 2.4
+}
+```
+
+#### curl
+```sh
+curl -X POST http://127.0.0.1:8000/great-circle/ \
+  -H "Content-Type: application/json" \
+  -d '{"lat1": 50.1, "lon1": 14.4, "lat2": 48.9, "lon2": 2.4}'
+```
+
+#### PowerShell
+```powershell
+$body = @{ lat1=50.1; lon1=14.4; lat2=48.9; lon2=2.4 } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/great-circle/" -Method Post -ContentType "application/json" -Body $body
+```
+
+### Example POST (form/HTMX)
+
+
+```
+POST /great-circle/
+Content-Type: application/x-www-form-urlencoded
+lat1=50.1&lon1=14.4&lat2=48.9&lon2=2.4
+```
+
+### Example POST (JSON) for wind_triangle
+
+
+```
+POST /wind-triangle/
+Content-Type: application/json
+{
+   "true_airspeed": 120,
+   "true_course": 90,
+   "wind_direction": 180,
+   "wind_speed": 20
+}
+```
+
+#### curl
+```sh
+curl -X POST http://127.0.0.1:8000/wind-triangle/ \
+   -H "Content-Type: application/json" \
+   -d '{"true_airspeed": 120, "true_course": 90, "wind_direction": 180, "wind_speed": 20}'
+```
+
+#### PowerShell
+```powershell
+$body = @{ true_airspeed=120; true_course=90; wind_direction=180; wind_speed=20 } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/wind-triangle/" -Method Post -ContentType "application/json" -Body $body
+```
+
+### Example POST (form/HTMX) for wind_triangle
+
+```
+POST /wind-triangle/
+Content-Type: application/x-www-form-urlencoded
+true_airspeed=120&true_course=90&wind_direction=180&wind_speed=20
+```
+
+### Example POST (JSON) for rhumb_line
+
+
+```
+POST /rhumb-line/
+Content-Type: application/json
+{
+   "lat1": 50.1,
+   "lon1": 14.4,
+   "lat2": 48.9,
+   "lon2": 2.4
+}
+```
+
+#### curl
+```sh
+curl -X POST http://127.0.0.1:8000/rhumb-line/ \
+   -H "Content-Type: application/json" \
+   -d '{"lat1": 50.1, "lon1": 14.4, "lat2": 48.9, "lon2": 2.4}'
+```
+
+#### PowerShell
+```powershell
+$body = @{ lat1=50.1; lon1=14.4; lat2=48.9; lon2=2.4 } | ConvertTo-Json
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/rhumb-line/" -Method Post -ContentType "application/json" -Body $body
+```
+
+### Example POST (form/HTMX) for rhumb_line
+
+```
+POST /rhumb-line/
+Content-Type: application/x-www-form-urlencoded
+lat1=50.1&lon1=14.4&lat2=48.9&lon2=2.4
+```
+
+```
+aviation-calculator/
+├── aviationcalc/                # Django project config (settings, urls, wsgi, asgi)
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── calculator/                  # Main Django app with all aviation calculators
+│   ├── admin.py
+│   ├── apps.py
+│   ├── migrations/
+│   │   ├── __init__.py
+│   │   └── 0001_initial.py
+│   ├── models.py
+│   ├── static/
+│   │   └── calculator/
+│   │       └── htmx.min.js
+│   ├── templates/
+│   │   └── calculator/
+│   │       ├── base.html
+│   │       ├── fragments/
+│   │       │   ├── great_circle_fragment.html
+│   │       │   ├── rhumb_line_fragment.html
+│   │       │   └── wind_triangle_fragment.html
+│   │       ├── great_circle.html
+│   │       ├── history.html
+│   │       ├── home.html
+│   │       ├── rhumb_line.html
+│   │       └── wind_triangle.html
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+├── db.sqlite3                   # SQLite database
+├── manage.py                    # Django management script
+├── pyproject.toml               # Project dependencies (uv/poetry compatible)
+├── uv.lock                      # uv lockfile
+└── README.md
+```
 This project uses [uv](https://github.com/astral-sh/uv) for dependency management.
 
 1. Navigate to the project directory:
