@@ -12,26 +12,31 @@
             <div class="card-body">
                 <p class="text-muted">Calculate wind correction angle, magnetic heading, and ground speed.</p>
                 
-                <form id="windTriangleForm">
+            <form id="windTriangleForm"
+                hx-post="{% url 'calculator:wind_triangle' %}"
+                hx-trigger="submit"
+                hx-target="#results"
+                hx-swap="outerHTML"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label for="trueAirspeed" class="form-label">True Airspeed (knots)</label>
-                            <input type="number" class="form-control" id="trueAirspeed" step="0.1" min="0" required>
+                            <input type="number" class="form-control" id="trueAirspeed" name="true_airspeed" step="0.1" min="0" required>
                             <small class="text-muted">Aircraft's speed through the air</small>
                         </div>
                         <div class="col-md-6">
                             <label for="trueCourse" class="form-label">True Course (degrees)</label>
-                            <input type="number" class="form-control" id="trueCourse" step="0.1" min="0" max="359.9" required>
+                            <input type="number" class="form-control" id="trueCourse" name="true_course" step="0.1" min="0" max="359.9" required>
                             <small class="text-muted">Desired track over ground (0-359°)</small>
                         </div>
                         <div class="col-md-6">
                             <label for="windDirection" class="form-label">Wind Direction (degrees)</label>
-                            <input type="number" class="form-control" id="windDirection" step="0.1" min="0" max="359.9" required>
+                            <input type="number" class="form-control" id="windDirection" name="wind_direction" step="0.1" min="0" max="359.9" required>
                             <small class="text-muted">Direction wind is coming from (0-359°)</small>
                         </div>
                         <div class="col-md-6">
                             <label for="windSpeed" class="form-label">Wind Speed (knots)</label>
-                            <input type="number" class="form-control" id="windSpeed" step="0.1" min="0" required>
+                            <input type="number" class="form-control" id="windSpeed" name="wind_speed" step="0.1" min="0" required>
                             <small class="text-muted">Speed of the wind</small>
                         </div>
                     </div>
@@ -85,60 +90,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-document.getElementById('windTriangleForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const formData = {
-        true_airspeed: parseFloat(document.getElementById('trueAirspeed').value),
-        true_course: parseFloat(document.getElementById('trueCourse').value),
-        wind_direction: parseFloat(document.getElementById('windDirection').value),
-        wind_speed: parseFloat(document.getElementById('windSpeed').value)
-    };
-    
-    try {
-        const response = await fetch('{% url "calculator:wind_triangle" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('driftAngle').textContent = data.results.drift_angle + '°';
-            document.getElementById('magneticHeading').textContent = data.results.magnetic_heading + '°';
-            document.getElementById('groundSpeed').textContent = data.results.ground_speed;
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('error').style.display = 'none';
-        } else {
-            document.getElementById('error').textContent = 'Error: ' + data.error;
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
-        }
-    } catch (error) {
-        document.getElementById('error').textContent = 'Network error: ' + error.message;
-        document.getElementById('error').style.display = 'block';
-        document.getElementById('results').style.display = 'none';
-    }
-});
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-</script>
+<!-- htmx handles form submission and result replacement -->
 {% endblock %}

@@ -12,19 +12,24 @@
             <div class="card-body">
                 <p class="text-muted">Calculate the shortest distance and initial bearing between two points on Earth.</p>
                 
-                <form id="greatCircleForm">
+            <form id="greatCircleForm"
+                hx-post="{% url 'calculator:great_circle' %}"
+                hx-trigger="submit"
+                hx-target="#results"
+                hx-swap="outerHTML"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
                     <div class="row g-3">
                         <div class="col-12">
                             <h6 class="text-primary">Departure Point</h6>
                         </div>
                         <div class="col-md-6">
                             <label for="lat1" class="form-label">Latitude (degrees)</label>
-                            <input type="number" class="form-control" id="lat1" step="0.000001" min="-90" max="90" required>
+                            <input type="number" class="form-control" id="lat1" name="lat1" step="0.000001" min="-90" max="90" required>
                             <small class="text-muted">North positive, South negative (-90 to 90°)</small>
                         </div>
                         <div class="col-md-6">
                             <label for="lon1" class="form-label">Longitude (degrees)</label>
-                            <input type="number" class="form-control" id="lon1" step="0.000001" min="-180" max="180" required>
+                            <input type="number" class="form-control" id="lon1" name="lon1" step="0.000001" min="-180" max="180" required>
                             <small class="text-muted">East positive, West negative (-180 to 180°)</small>
                         </div>
                         
@@ -33,12 +38,12 @@
                         </div>
                         <div class="col-md-6">
                             <label for="lat2" class="form-label">Latitude (degrees)</label>
-                            <input type="number" class="form-control" id="lat2" step="0.000001" min="-90" max="90" required>
+                            <input type="number" class="form-control" id="lat2" name="lat2" step="0.000001" min="-90" max="90" required>
                             <small class="text-muted">North positive, South negative (-90 to 90°)</small>
                         </div>
                         <div class="col-md-6">
                             <label for="lon2" class="form-label">Longitude (degrees)</label>
-                            <input type="number" class="form-control" id="lon2" step="0.000001" min="-180" max="180" required>
+                            <input type="number" class="form-control" id="lon2" name="lon2" step="0.000001" min="-180" max="180" required>
                             <small class="text-muted">East positive, West negative (-180 to 180°)</small>
                         </div>
                     </div>
@@ -86,59 +91,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-document.getElementById('greatCircleForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const formData = {
-        lat1: parseFloat(document.getElementById('lat1').value),
-        lon1: parseFloat(document.getElementById('lon1').value),
-        lat2: parseFloat(document.getElementById('lat2').value),
-        lon2: parseFloat(document.getElementById('lon2').value)
-    };
-    
-    try {
-        const response = await fetch('{% url "calculator:great_circle" %}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify(formData)
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            document.getElementById('distance').textContent = data.results.distance + ' nm';
-            document.getElementById('initialBearing').textContent = data.results.initial_bearing + '°';
-            document.getElementById('results').style.display = 'block';
-            document.getElementById('error').style.display = 'none';
-        } else {
-            document.getElementById('error').textContent = 'Error: ' + data.error;
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('results').style.display = 'none';
-        }
-    } catch (error) {
-        document.getElementById('error').textContent = 'Network error: ' + error.message;
-        document.getElementById('error').style.display = 'block';
-        document.getElementById('results').style.display = 'none';
-    }
-});
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-</script>
+<!-- htmx handles form submission and result replacement -->
 {% endblock %}
